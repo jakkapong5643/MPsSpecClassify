@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 from scipy.signal import spectrogram
 import joblib
 import torch
-import torch.nn as nn
+import torchvision.models as models
+import torchvision.transforms as transforms
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 import os
-import torchvision.transforms as transforms
 from PIL import Image
 import plotly.graph_objects as go
 
@@ -101,31 +101,38 @@ if show_home:
     with col3:
         show_image = st.checkbox("Show Spectrogram", value=False)
 
+    # Define image transformation
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
 
-    model = torch.load('alexnet_pretrained.pth')
-    feature_extractor = model
+    # Load pretrained AlexNet model for feature extraction
+    model = models.alexnet(pretrained=False)
+    model.load_state_dict(torch.load('alexnet_pretrained.pth'))
+    model.eval()  # Set the model to evaluation mode
 
+    feature_extractor = model.features  # Use only the feature extraction layers
 
-    def infer_single_image(image_path, a, transform):
+    # Function to extract features from an image
+    def infer_single_image(image_path, feature_extractor, transform):
         image = Image.open(image_path).convert('RGB')
         image = transform(image)
-        image = image.unsqueeze(0)  
+        image = image.unsqueeze(0)  # Add batch dimension
         
         with torch.no_grad():
-            features = a(image)
+            features = feature_extractor(image)  # Extract features
         return features.cpu().numpy()
 
+    # Function to add extracted features to a DataFrame
     def add_features_to_dataframe(inference_features, image_path):
         features_df = pd.DataFrame(inference_features, columns=[f'{i}' for i in range(inference_features.shape[1])])
         filename = os.path.basename(image_path)
         features_df['filename'] = f"<span class='dataframe_filename'>{filename}</span>"
-        features_df['label'] = None  
+        features_df['label'] = None  # Placeholder for the label
         return features_df
 
+    # Function to plot the original spectrum
     def plot_spectrum(df):
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -159,6 +166,7 @@ if show_home:
         )
         return fig
 
+    # Function to plot the preprocessed spectrum
     def plot_spectrum_Clean(df, line_color='#b84848'):
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -193,6 +201,7 @@ if show_home:
 
         return fig
 
+    # Function to generate a spectrogram image
     def generate_spectrogram_image(data):
         frequencies, times, Sxx = spectrogram(data, fs=1)
         plt.figure(figsize=(10, 5))
@@ -201,6 +210,7 @@ if show_home:
         plt.savefig("image.png", bbox_inches='tight', pad_inches=0, transparent=True)
         plt.close()
 
+    # Function to apply baseline correction using a polynomial
     def polynomial_baseline_correction(x, degree=2):
         coeffs = np.polyfit(range(len(x)), x, degree)
         baseline = np.polyval(coeffs, range(len(x)))
@@ -213,8 +223,6 @@ if show_home:
         a = pd.DataFrame(a).transpose()
 
         col2 = pd.read_csv('colTrue2.csv')
-
-        # st.plotly_chart(plot_spectrum(df))
 
         df_plot = df.set_index('Unnamed: 0').T
         df_plot = df_plot.apply(polynomial_baseline_correction, axis=1)
@@ -247,6 +255,7 @@ if show_home:
         merged_df.columns = merged_df.columns.astype(str)
         cols_in_col = col2.columns
         cols_in_col = [str(col) for col in cols_in_col]
+
 
         merged_df = merged_df[merged_df.columns[merged_df.columns.isin(cols_in_col)]]
 
