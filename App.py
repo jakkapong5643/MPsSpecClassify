@@ -117,7 +117,6 @@ if show_home:
         
         with torch.no_grad():
             features = model(image)
-            features = features.view(features.size(0), -1)  
         return features.cpu().numpy()
 
     def add_features_to_dataframe(inference_features, image_path):
