@@ -108,8 +108,7 @@ if show_home:
 
     model = torch.load('alexnet_pretrained.pth')
     feature_extractor = model
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    feature_extractor.to(device)
+
 
     def infer_single_image(image_path, model, transform, device):
         image = Image.open(image_path).convert('RGB')
