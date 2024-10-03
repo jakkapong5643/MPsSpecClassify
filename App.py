@@ -110,11 +110,11 @@ if show_home:
     feature_extractor = model
 
 
-    def infer_single_image(image_path, model, transform, device):
+    def infer_single_image(image_path, model, transform):
         image = Image.open(image_path).convert('RGB')
         image = transform(image)
         image = image.unsqueeze(0)  
-        image = image.to(device)
+        
         with torch.no_grad():
             features = model(image)
             features = features.view(features.size(0), -1)  
@@ -236,7 +236,7 @@ if show_home:
             st.image("image.png", use_column_width=True)
 
         image_path = 'image.png'
-        inference_features = infer_single_image(image_path, feature_extractor, transform, device)
+        inference_features = infer_single_image(image_path, feature_extractor, transform)
         inference_df = add_features_to_dataframe(inference_features, image_path)
         inference_df = inference_df.reset_index(drop=True)
         a = a.reset_index(drop=True)
