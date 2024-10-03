@@ -106,17 +106,16 @@ if show_home:
         transforms.ToTensor()
     ])
 
-    model = torch.load('alexnet_pretrained.pth')
-    feature_extractor = model
+    feature_extractor = torch.load('feature_extractor_full.pth')
 
-
-    def infer_single_image(image_path, a, transform):
+    def infer_single_image(image_path, model, transform):
         image = Image.open(image_path).convert('RGB')
-        image = transform(image)
-        image = image.unsqueeze(0)  
-        
+        images = transform(image)
+        images = images.unsqueeze(0)  
+
         with torch.no_grad():
-            features = a(image)
+            features = model(images)
+            features = features.view(features.size(0), -1)  
         return features.cpu().numpy()
 
     def add_features_to_dataframe(inference_features, image_path):
