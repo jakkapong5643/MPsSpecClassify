@@ -106,7 +106,7 @@ if show_home:
         transforms.ToTensor()
     ])
 
-    model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', pretrained=True)
+    model = torch.load('alexnet_pretrained.pth')
     feature_extractor = nn.Sequential(*list(model.children())[:-1])
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     feature_extractor.to(device)
