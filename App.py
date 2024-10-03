@@ -64,7 +64,7 @@ st.markdown(
 )
 
 st.sidebar.title('MPsSpecClassify')
-image = Image.open('C:\SuperAI SS4\ฝึกงาน\messageImage_1726032251679-removebg-preview.png')
+image = Image.open('Logo.png')
 st.sidebar.image(image, caption='', use_column_width=True)
 
 show_home = True
@@ -214,7 +214,7 @@ if show_home:
         a = a.iloc[0]
         a = pd.DataFrame(a).transpose()
 
-        col2 = pd.read_csv('C:\SuperAI SS4\ฝึกงาน\Code\APP\colTrue2.csv')
+        col2 = pd.read_csv('colTrue2.csv')
 
         # st.plotly_chart(plot_spectrum(df))
 
@@ -252,7 +252,7 @@ if show_home:
 
         merged_df = merged_df[merged_df.columns[merged_df.columns.isin(cols_in_col)]]
 
-        model_path = 'C:\SuperAI SS4\ฝึกงาน\Code\APP\ModelTrue2.pkl'
+        model_path = 'ModelTrue2.pkl'
         st.subheader("Predictions")
         merged_df.columns = merged_df.columns.astype(str)
         merged_df = merged_df.apply(polynomial_baseline_correction, axis=1)
