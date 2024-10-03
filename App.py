@@ -113,20 +113,11 @@ if show_home:
     def infer_single_image(image_path, model, transform):
         image = Image.open(image_path).convert('RGB')
         image = transform(image)
-        image = image.unsqueeze(0)  # Add batch dimension
+        image = image.unsqueeze(0)  
         
         with torch.no_grad():
-            output = model(image)  # This might return an OrderedDict
-            if isinstance(output, collections.OrderedDict):
-                # Extract the correct layer's features from OrderedDict
-                # Replace 'desired_layer_key' with the correct key from the OrderedDict
-                features = output['desired_layer_key']
-            else:
-                # If it's not an OrderedDict, assume it's the final feature vector
-                features = output
-            
+            features = model(image)
         return features.cpu().numpy()
-
 
     def add_features_to_dataframe(inference_features, image_path):
         features_df = pd.DataFrame(inference_features, columns=[f'{i}' for i in range(inference_features.shape[1])])
