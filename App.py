@@ -110,13 +110,13 @@ if show_home:
     feature_extractor = model
 
 
-    def infer_single_image(image_path, modele, transform):
+    def infer_single_image(image_path, a, transform):
         image = Image.open(image_path).convert('RGB')
         image = transform(image)
         image = image.unsqueeze(0)  
         
         with torch.no_grad():
-            features = modele(image)
+            features = a(image)
         return features.cpu().numpy()
 
     def add_features_to_dataframe(inference_features, image_path):
