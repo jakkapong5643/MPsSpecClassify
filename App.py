@@ -65,7 +65,7 @@ st.markdown(
 
 st.sidebar.title('MPsSpecClassify')
 image = Image.open('Logo.png')
-st.sidebar.image(image, caption='', use_column_width=True)
+st.sidebar.image(image, caption='', use_container_width=True)
 
 show_home = True
 show_contact = False
@@ -231,7 +231,7 @@ if show_home:
 
         if show_image:
             st.subheader("Spectrogram")
-            st.image("image.png", use_column_width=True)
+            st.image("image.png", use_container_width=True)
 
         image_path = 'image.png'
         inference_features = infer_single_image(image_path, feature_extractor, transform)
@@ -317,34 +317,34 @@ if show_tutorial:
         ""
     )
     st.subheader("1. Uploading Files")
-    st.image("1.png", use_column_width=True)
+    st.image("1.png", use_container_width=True)
 
     st.write(
         "Click on the 'Upload' button in the sidebar to upload a CSV file. The CSV should contain the spectral data."
     )
     
     st.subheader("2. Display Options")
-    st.image("2.png", use_column_width=True)
+    st.image("2.png", use_container_width=True)
 
-    st.image("3.png", use_column_width=True)
+    st.image("3.png", use_container_width=True)
 
     st.write(
         "The graph will display points showing absorption or transmission values related to wavelength, which aids in analyzing which wavelengths of light are being absorbed."
     )
     
-    st.image("4.png", use_column_width=True)
+    st.image("4.png", use_container_width=True)
     st.write(
         "This will show a graph of the processed data after applying baseline correction using a polynomial."
     )
 
-    st.image("5.png", use_column_width=True)
+    st.image("5.png", use_container_width=True)
     st.write(
         "The spectrogram will be displayed as a 2D graph with the x-axis representing time and the y-axis representing frequency. "
         "Colors or indicators will be used to show the energy levels of the signal at each time and frequency interval."
     )
     
     st.subheader("3. Making Predictions")
-    st.image("6.png", use_column_width=True)
+    st.image("6.png", use_container_width=True)
     st.write(
         "After uploading the CSV file and selecting the display options: The application will process the data and extract features using the trained model. "
         "Then, it will predict the type of polymer based on the spectrum features. The predicted class and confidence score will be displayed below in the prediction section."
