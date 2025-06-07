@@ -137,8 +137,8 @@ if show_home:
     def plot_spectrum(df):
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=df['Unnamed: 0'], 
-            y=df['Unnamed: 1'],
+            x=df['A1'], 
+            y=df['A2'],
             mode='lines',
             name='Spectrum',
             line=dict(color='#b84848')
@@ -215,8 +215,10 @@ if show_home:
         return x - baseline
 
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file).dropna()
-        a = df.set_index('Unnamed: 0').T
+        df = pd.read_csv(uploaded_file, header=None).dropna()
+        df.columns = [f'A{i+1}' for i in range(df.shape[1])]
+
+        a = df.set_index('A1').T
         a = a.iloc[0]
         a = pd.DataFrame(a).transpose()
 
@@ -224,7 +226,7 @@ if show_home:
 
         # st.plotly_chart(plot_spectrum(df))
 
-        df_plot = df.set_index('Unnamed: 0').T
+        df_plot = df.set_index('A1').T
         df_plot = df_plot.apply(polynomial_baseline_correction, axis=1)
 
         if show_spectrum_plot:
@@ -236,7 +238,7 @@ if show_home:
             st.subheader("Spectrum Preprocess Plot")
             st.plotly_chart(plot_spectrum_Clean(df_plot))
 
-        generate_spectrogram_image(df['Unnamed: 1'].values)
+        generate_spectrogram_image(df['A2'].values)
 
         if show_image:
             st.subheader("Spectrogram")
