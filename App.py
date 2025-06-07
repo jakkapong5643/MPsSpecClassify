@@ -106,7 +106,7 @@ if show_home:
         transforms.ToTensor()
     ])
 
-    feature_extractor = torch.load('feature_extractor_full.pth')
+    feature_extractor = torch.load('feature_extractor_full.pth', weights_only=False)
 
     def infer_single_image(image_path, model, transform):
         image = Image.open(image_path).convert('RGB')
@@ -319,10 +319,6 @@ if show_tutorial:
     st.subheader("1. Uploading Files")
     st.image("1.png", use_container_width=True)
 
-    st.write(
-        "Click on the 'Upload' button in the sidebar to upload a CSV file. The CSV should contain the spectral data."
-    )
-    
     st.subheader("2. Display Options")
     st.image("2.png", use_container_width=True)
 
