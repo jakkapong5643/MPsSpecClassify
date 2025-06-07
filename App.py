@@ -12,7 +12,6 @@ import torchvision.transforms as transforms
 from PIL import Image
 import plotly.graph_objects as go
 
-# Set up the Streamlit app layout and styling
 st.markdown(
     """
     <style>
@@ -21,12 +20,15 @@ st.markdown(
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        color: black !important;  /* สีตัวหนังสือหลัก */
+        font-family: 'Arial', sans-serif;
     }
     .stApp {
         background-color: #ffffff;
+        color: black !important;
     }
     .title {
-        color: #000000;
+        color: black !important;
         font-family: 'Arial', sans-serif;
         font-size: 32px;
         font-weight: bold;
@@ -37,9 +39,10 @@ st.markdown(
         background-color: #f7f7f7;
         padding: 20px;
         border-radius: 10px;
+        color: black !important;
     }
     .stFileUploader, .stDataFrame, h2, h3, h4, h5, h6, p {
-        color: #000000;
+        color: black !important;
         background-color: #ffffff;
         border: 1px solid #cccccc;
         padding: 10px;
@@ -51,12 +54,19 @@ st.markdown(
         border-radius: 10px;
         padding: 20px;
         text-align: center;
-        color: #333;
+        color: black !important;
         font-size: 16px;
     }
     .css-1vbqpe4.edgvbvh3:hover {
         background-color: #e9ecef;
         border-color: #0056b3;
+        color: black !important;
+    }
+    .markdown-text-container, .stMarkdown {
+        color: black !important;
+    }
+    div[style*="color:black"] {
+        color: black !important;
     }
     </style>
     """,
@@ -71,7 +81,6 @@ show_home = True
 show_contact = False
 show_tutorial = False
 
-# Page navigation buttons
 if st.sidebar.button("MPsSpecClassify"):
     show_home = True
     show_contact = False
