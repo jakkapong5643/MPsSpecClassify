@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -458,3 +457,4 @@ if show_tutorial:
             "Then, it will predict the type of polymer based on the spectrum features. The predicted class and confidence score will be displayed below in the prediction section."
         )
         st.markdown('</div>', unsafe_allow_html=True)
+
