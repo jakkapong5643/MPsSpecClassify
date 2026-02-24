@@ -152,7 +152,7 @@ st.markdown('<div class="app-title">MPsSpecClassify</div>', unsafe_allow_html=Tr
 
 st.sidebar.title('MPsSpecClassify')
 image = Image.open('Logo.png')
-st.sidebar.image(image, caption='', use_container_width=True)
+st.sidebar.image(image, caption='', width='stretch')
 
 st.sidebar.markdown("### Navigation")
 st.sidebar.divider()
@@ -194,7 +194,8 @@ def style_fig(fig, title):
 
 
 if show_home:
-    uploaded_file = st.file_uploader("", type="csv")
+    uploaded_file = st.file_uploader("Upload Spectrum CSV", type="csv", label_visibility="collapsed")
+    # Using label_visibility="collapsed" still keeps the label available for screen readers, fixing the accessibility warning.
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -314,7 +315,7 @@ if show_home:
                 st.markdown('<div class="glass">', unsafe_allow_html=True)
                 st.subheader("Spectrum Plot")
                 fig = plot_spectrum(df)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
                 st.markdown('</div>', unsafe_allow_html=True)
 
         if show_Preprocess:
@@ -322,7 +323,7 @@ if show_home:
                 st.markdown('<div class="glass">', unsafe_allow_html=True)
                 st.subheader("Spectrum Preprocess Plot")
                 fig2 = plot_spectrum_Clean(df_plot)
-                st.plotly_chart(fig2, use_container_width=True)
+                st.plotly_chart(fig2, width='stretch')
                 st.markdown('</div>', unsafe_allow_html=True)
 
         with st.spinner('Generating spectrogram...'):
@@ -332,7 +333,7 @@ if show_home:
             with st.container():
                 st.markdown('<div class="glass">', unsafe_allow_html=True)
                 st.subheader("Spectrogram")
-                st.image("image.png", use_container_width=True)
+                st.image("image.png", width='stretch')
                 st.markdown('<div class="img-cap">Spectrogram generated from uploaded spectrum</div>', unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -346,24 +347,78 @@ if show_home:
 
             merged_df = pd.concat([inference_df, a], axis=1)
             merged_df = merged_df.drop(columns=['filename', 'label'])
-            merged_df = pd.DataFrame(merged_df)
 
-            merged_df.columns = merged_df.columns.astype(str)
-            cols_in_col = col2_df.columns
-            cols_in_col = [str(col) for col in cols_in_col]
-            merged_df = merged_df[merged_df.columns[merged_df.columns.isin(cols_in_col)]]
+            # Fix for ValueError: The feature names should match those that were passed during fit.
+            # The uploaded wavelengths in 'a' might slightly differ from colTrue2.csv due to precision.
+            # We interpolate the uploaded data onto the exact wavelength grid of the model.
+
+            # Get reference columns from colTrue2.csv (excluding index or empty name column)
+            target_cols = [c for c in col2_df.columns if c and not c.startswith('Unnamed')]
+            
+            # Identify which part of merged_df is categorical features (0 to 458 in the original code logic)
+            # and which part is the spectrum (the columns from 'a')
+            
+            # The model seems to expect features with names from target_cols.
+            # Let's rebuild merged_df with the exact expected columns.
+            
+            final_df = pd.DataFrame(index=[0], columns=target_cols)
+            
+            # 1. Fill in CNN features (0-400)
+            for col in target_cols:
+                if col in merged_df.columns:
+                    final_df[col] = merged_df[col].values
+            
+            # 2. Interpolate the spectrum part if needed
+            # Based on the error, the spectrum wavelengths like '1000.8743' are missing/mismatched.
+            # We find the columns that look like floats in target_cols.
+            spectrum_cols = []
+            for col in target_cols:
+                try:
+                    float(col)
+                    spectrum_cols.append(col)
+                except ValueError:
+                    pass
+            
+            if spectrum_cols:
+                target_wavelengths = np.array([float(c) for c in spectrum_cols])
+                # Find available wavelengths in 'a'
+                available_wavelengths = np.array([float(c) for c in a.columns])
+                available_values = a.iloc[0].values
+                
+                # Sort them if they are not sorted (np.interp requires sorted x)
+                idx = np.argsort(available_wavelengths)
+                available_wavelengths = available_wavelengths[idx]
+                available_values = available_values[idx]
+                
+                # Interpolate
+                interpolated_values = np.interp(target_wavelengths, available_wavelengths, available_values)
+                
+                # Update final_df
+                for col, val in zip(spectrum_cols, interpolated_values):
+                    final_df[col] = val
 
             model_path = 'ModelTrue2.pkl'
+            model = joblib.load(model_path) if os.path.exists(model_path) else None
+
+            # Ensure columns match the exact order the model was trained with
+            if model is not None and hasattr(model, 'feature_names_in_'):
+                final_df = final_df.reindex(columns=model.feature_names_in_, fill_value=0)
+            else:
+                final_df = final_df[target_cols]
+            final_df.columns = final_df.columns.astype(str)
+
+            merged_df = pd.DataFrame(final_df)
 
             st.subheader("Predictions")
-            merged_df.columns = merged_df.columns.astype(str)
-            merged_df = merged_df.apply(polynomial_baseline_correction, axis=1)
+            # Apply baseline correction while preserving column names
+            # Using data.values ensures we handle the computation correctly, but we put it back into a DF
+            corrected_values = merged_df.apply(polynomial_baseline_correction, axis=1)
+            merged_df = pd.DataFrame(corrected_values.values.tolist(), columns=merged_df.columns, index=merged_df.index)
 
             class_name = ['Polyamide (PA)','Polyethylene (PE)','Polyethylene terephthalate (PET)','Polypropylene (PP)','Polystyrene (PS)']
             class_name = np.array(class_name)
 
-            if os.path.exists(model_path):
-                model = joblib.load(model_path)
+            if model is not None:
 
                 predictions = model.predict(merged_df)
                 probabilities = model.predict_proba(merged_df)
@@ -430,28 +485,28 @@ if show_tutorial:
         st.write("")
         st.write("")
         st.subheader("1. Uploading Files")
-        st.image("1.png", use_container_width=True)
+        st.image("1.png", width='stretch')
 
         st.subheader("2. Display Options")
-        st.image("2.png", use_container_width=True)
-        st.image("3.png", use_container_width=True)
+        st.image("2.png", width='stretch')
+        st.image("3.png", width='stretch')
         st.write(
             "The graph will display points showing absorption or transmission values related to wavelength, which aids in analyzing which wavelengths of light are being absorbed."
         )
 
-        st.image("4.png", use_container_width=True)
+        st.image("4.png", width='stretch')
         st.write(
             "This will show a graph of the processed data after applying baseline correction using a polynomial."
         )
 
-        st.image("5.png", use_container_width=True)
+        st.image("5.png", width='stretch')
         st.write(
             "The spectrogram will be displayed as a 2D graph with the x-axis representing time and the y-axis representing frequency. "
             "Colors or indicators will be used to show the energy levels of the signal at each time and frequency interval."
         )
 
         st.subheader("3. Making Predictions")
-        st.image("6.png", use_container_width=True)
+        st.image("6.png", width='stretch')
         st.write(
             "After uploading the CSV file and selecting the display options: The application will process the data and extract features using the trained model. "
             "Then, it will predict the type of polymer based on the spectrum features. The predicted class and confidence score will be displayed below in the prediction section."
